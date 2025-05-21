@@ -113,7 +113,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 // -- Open reminder tab or restore group --
 async function openReminder(notificationId, shouldDelete = true) {
-  shouldDelete = Boolean(shouldDelete); // Ensures it's treated properly
+  shouldDelete = Boolean(shouldDelete);
 
   const { reminders = {} } = await chrome.storage.sync.get("reminders");
   const reminder = reminders[notificationId];
@@ -122,23 +122,24 @@ async function openReminder(notificationId, shouldDelete = true) {
     return;
   }
 
-  // Check if the main tab is already open
   const existingTabs = await chrome.tabs.query({ url: reminder.url });
+
   if (existingTabs.length > 0) {
     const existingTab = existingTabs[0];
-    // If it's already part of a group, just focus it
+
+    // If it's in a group, just focus it
     if (existingTab.groupId !== -1) {
       await chrome.tabs.update(existingTab.id, { active: true });
       await chrome.windows.update(existingTab.windowId, { focused: true });
     } else if (reminder.groupId && reminder.groupUrls) {
-      // Otherwise, recreate the group
+      // Re-create full group, including original tab
       await restoreTabGroup(reminder);
     } else {
       await chrome.tabs.update(existingTab.id, { active: true });
       await chrome.windows.update(existingTab.windowId, { focused: true });
     }
   } else {
-    // Tab doesn't exist — restore group or open single tab
+    // Not open, recreate group or open single tab
     if (reminder.groupId && reminder.groupUrls) {
       await restoreTabGroup(reminder);
     } else {
@@ -147,9 +148,11 @@ async function openReminder(notificationId, shouldDelete = true) {
     }
   }
 
+  // Clean up the reminder if requested
   if (shouldDelete) {
     delete reminders[notificationId];
     await chrome.storage.sync.set({ reminders });
+    chrome.alarms.clear(notificationId);
     chrome.notifications.clear(notificationId);
     await checkOverdueReminders();
   }
@@ -165,43 +168,42 @@ chrome.notifications.onClicked.addListener((notificationId) => {
 
 // -- Restore a tab group --
 async function restoreTabGroup(reminder) {
-  try {
-    const urls = reminder.groupUrls || [];
-    const tabIds = [];
+  const allUrls = reminder.groupUrls ? [...reminder.groupUrls] : [];
 
-    const window = await chrome.windows.getCurrent();
-    const createdTabs = [];
-
-    for (const url of urls) {
-      const isReminderTab = url === reminder.url;
-      const tab = await chrome.tabs.create({
-        url,
-        active: false,
-        windowId: window.id
-      });
-      createdTabs.push(tab);
-    }
-
-    // Activate the correct tab
-    const reminderTab = createdTabs[reminder.reminderIndex];
-    if (reminderTab) {
-      await chrome.tabs.update(reminderTab.id, { active: true });
-    }
-
-    // Group and style
-    const newGroupId = await chrome.tabs.group({ tabIds: createdTabs.map(t => t.id) });
-    await chrome.tabGroups.update(newGroupId, {
-      title: reminder.groupTitle,
-      color: reminder.groupColor
-    });
-
-    await chrome.windows.update(window.id, { focused: true });
-
-  } catch (err) {
-    console.error("[DEBUG] Failed to restore tab group:", err);
+  // Ensure the original tab URL is included
+  if (!allUrls.includes(reminder.url)) {
+    allUrls.unshift(reminder.url); // Add it to the beginning
   }
-}
 
+  // Open all tabs
+  const createdTabs = await Promise.all(
+    allUrls.map(url => chrome.tabs.create({ url, active: false }))
+  );
+
+  // Group them
+  const tabIds = createdTabs.map(tab => tab.id);
+  const groupId = await chrome.tabs.group({ tabIds });
+
+  // Set group title/color if saved (optional)
+  if (reminder.groupTitle || reminder.groupColor) {
+    await chrome.tabGroups.update(groupId, {
+      title: reminder.groupTitle || '',
+      color: reminder.groupColor || 'grey',
+    });
+  }
+
+  // Focus the tab that matches the original reminder URL
+  const targetTab = createdTabs.find(tab => tab.url.includes(reminder.url))
+
+  if (targetTab) {
+      await chrome.tabs.update(targetTab.id, { active: true });
+      await chrome.windows.update(targetTab.windowId, { focused: true });
+    } else {
+      // Fallback: focus first tab
+      await chrome.tabs.update(createdTabs[0].id, { active: true });
+      await chrome.windows.update(createdTabs[0].windowId, { focused: true });
+    }
+}
 
 // -- Listen for manual overdue check from popup.js --
 chrome.runtime.onMessage.addListener((message) => {
