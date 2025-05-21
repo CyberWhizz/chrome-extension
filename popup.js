@@ -118,8 +118,8 @@ async function setReminder() {
   const reminderTime = parseInt(document.getElementById('reminderTime').value);
   const comment = document.getElementById('reminderComment').value.trim();
 
-  if (!ticketUrl || isNaN(reminderTime)) {
-    alert('Please enter valid URL and time');
+  if (!ticketUrl || isNaN(reminderTime) || reminderTime < 1 || reminderTime > 43200) {
+    alert('Please enter a valid time between 1 minute and 30 days (43200 minutes).');
     return;
   }
 
@@ -292,12 +292,25 @@ function cancelReminder(key) {
 // Format milliseconds into mm:ss format
 function formatTimeLeft(endTime) {
   const now = Date.now();
-  const diff = endTime - now;
-  const absoluteDiff = Math.abs(diff);
-  const minutes = Math.floor(absoluteDiff / 60000);
-  const seconds = Math.floor((absoluteDiff % 60000) / 1000);
-  return diff >= 0 ? `${minutes}m ${seconds}s` : `-${minutes}m ${seconds}s`;
+  let diff = endTime - now;
+  const isPast = diff < 0;
+  diff = Math.abs(diff);
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / (24 * 3600));
+  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0 || days > 0) parts.push(`${hours}h`);
+  if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes}m`);
+  parts.push(`${seconds}s`);
+
+  return (isPast ? '-' : '') + parts.join(' ');
 }
+
 
 // Extract hostname from a URL (with truncation if too long)
 function getDomainFromUrl(url) {
