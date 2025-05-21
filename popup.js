@@ -34,9 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     toggleVisibilityBtn.classList.toggle('visibility-filter-enabled', hideLongReminders);
     toggleVisibilityBtn.title = `Hide >12h reminders: ${hideLongReminders ? 'On' : 'Off'}`;
+    toggleVisibilityBtn.src = hideLongReminders
+      ? 'icons/visibility_off.png'
+      : 'icons/visibility.png';
 
     toggleSoundBtn.classList.toggle('sort-enabled', !isSoundOn);
     toggleSoundBtn.title = `Sound: ${isSoundOn ? 'On' : 'Muted'}`;
+    toggleSoundBtn.src = isSoundOn
+      ? 'icons/volume.png'
+      : 'icons/volume_off.png';
 
     updateActiveRemindersList();
   });
@@ -60,20 +66,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     toggleVisibilityBtn.classList.toggle('visibility-filter-enabled', hideLongReminders);
     toggleVisibilityBtn.title = `Hide >12h reminders: ${hideLongReminders ? 'On' : 'Off'}`;
+    toggleVisibilityBtn.src = hideLongReminders
+      ? 'icons/visibility_off.png'
+      : 'icons/visibility.png';
 
     updateActiveRemindersList();
   });
 
-  // Toggle sound
+// Toggle sound
   toggleSoundBtn.addEventListener('click', () => {
-    // Check if user *just muted* it
-    const isMutedNow = !toggleSoundBtn.classList.contains('sort-enabled'); // it's ON → now toggling OFF
+    const isMutedNow = toggleSoundBtn.src.includes('volume_off.png');
 
-    const enableSound = isMutedNow ? false : true;
+    const enableSound = isMutedNow; // If muted, enable sound
     chrome.storage.local.set({ enableSound });
 
-    toggleSoundBtn.classList.toggle('sort-enabled', !enableSound);
+    toggleSoundBtn.src = enableSound
+      ? 'icons/volume.png'
+      : 'icons/volume_off.png';
+
     toggleSoundBtn.title = `Sound: ${enableSound ? 'On' : 'Muted'}`;
+
+    // Toggle the blue highlight class
+    toggleSoundBtn.classList.toggle('sort-enabled', !enableSound);
   });
 });
 
