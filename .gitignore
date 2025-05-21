@@ -1,0 +1,11 @@
+# VS Code settings
+.vscode/
+
+# Swap/temp files
+*.swp
+
+# macOS Finder metadata
+.DS_Store
+
+# Windows thumbnails
+Thumbs.db

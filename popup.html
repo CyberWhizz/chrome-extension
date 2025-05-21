@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Page Reminder</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 400px;
+      padding: 15px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="top-bar">
+    <img id="openFullPage" src="icons/open_in_new.png" alt="Open Full Page" title="Open in full page">
+  </div>
+
+  <h2>Page Reminder</h2>
+
+  <div class="input-group">
+    <label for="ticketUrl">Page URL:</label>
+    <input type="text" id="ticketUrl" placeholder="Will auto-fill current page URL">
+  </div>
+  <div class="input-group">
+    <label for="reminderTime">Remind after (minutes):</label>
+    <input type="number" id="reminderTime" min="0" value="30" step="30">
+  </div>
+  <div class="input-group">
+    <label for="reminderComment">Comment (optional):</label>
+    <textarea id="reminderComment" placeholder="Add a note about this reminder"></textarea>
+  </div>
+  <button id="setReminder">Set Reminder</button>
+
+  <div id="ticketList">
+    <div class="reminders-header">
+      <h3>Active Reminders</h3>
+      <div class="reminder-controls">
+        <img src="icons/visibility_off.png" id="toggleVisibility" title="Hide >12h reminders" alt="Toggle Visibility" class="sort-icon">
+        <img src="icons/volume_off.png" id="toggleSound" title="Mute notification sound" alt="Toggle Sound" class="sort-icon">
+        <img src="icons/format_list_numbered.png" id="toggleSort" title="Sort by time left" alt="Sort" class="sort-icon">
+      </div>
+    </div>
+    <div id="activeTickets"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

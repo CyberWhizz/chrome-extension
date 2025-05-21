@@ -1,0 +1,83 @@
+{
+  "manifest_version": 3,
+  "name": "Page Reminder",
+  "version": "1.2.5",
+  "description": "Advanced URL reminders with countdown",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon16.png"
+  },
+  "permissions": [
+    "alarms",
+    "notifications",
+    "storage",
+    "activeTab",
+    "tabs",
+    "tabGroups",
+    "offscreen"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["full.html", "icons/*.png", "sounds/alert.mp3"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "offscreen_documents": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["offscreen.js"],
+      "reason": "AUDIO_PLAYBACK",
+      "use_dynamic_url": true
+    }
+  ],
+  "commands": {
+    "quick-reminder-30min": {
+      "suggested_key": {
+        "default": "Alt+1"
+      },
+      "description": "Set a 30-minute reminder"
+    },
+    "quick-reminder-60min": {
+      "suggested_key": {
+        "default": "Alt+2"
+      },
+      "description": "Set a 60-minute reminder"
+    },
+    "quick-reminder-3h": {
+      "suggested_key": {
+        "default": "Alt+3"
+      },
+      "description": "Set a 3-hour reminder"
+    },
+    "quick-reminder-6h": {
+      "suggested_key": {
+        "default": "Alt+4"
+      },
+      "description": "Set a 6-hour reminder"
+    },
+    "quick-reminder-1d": {
+      "description": "Set a 1-day reminder"
+    },
+    "quick-reminder-2d": {
+      "description": "Set a 2-day reminder"
+    },
+    "quick-reminder-3d": {
+      "description": "Set a 3-day reminder"
+    },
+    "quick-reminder-14d": {
+      "description": "Set a 14-day reminder"
+    }
+  }
+}
